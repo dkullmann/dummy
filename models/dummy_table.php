@@ -138,7 +138,11 @@ class DummyTable extends DummyAppModel {
 	 */
 	private function describe($id) {
 		$Model = &$this->getDataModel($id);
-		return ConnectionManager::getDataSource('default')->describe($Model);
+		if (!is_subclass_of($Model, 'Model') && !is_object($Model)) {
+			return false;
+		} else {
+			return ConnectionManager::getDataSource('default')->describe($Model);
+		}
 	}
 	
 	/**
@@ -150,7 +154,10 @@ class DummyTable extends DummyAppModel {
 	private function getDataModel($id = null) {
 		$data = $this->read(null, $id);
 		
-	//	debug($data);
+		// Skip the CakeSessions table which isn't really a model
+		if ($data[$this->alias]['table'] == 'cake_sessions') {
+			return false;
+		}
 		/* Try to use the specified model if it exits, otherwise create a generic model using the table as it's source */
 		if (!empty($data['DummyTable']['model'])) {
 			if (App::import('model', $data['DummyTable']['model'])) {
